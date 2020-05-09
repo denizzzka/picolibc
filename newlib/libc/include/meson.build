@@ -35,7 +35,7 @@
 subdir('sys')
 subdir('machine')
 
-inc_headers = [
+inc_headers = files(
   'alloca.h',
   '_ansi.h',
   'argz.h',
@@ -96,12 +96,12 @@ inc_headers = [
   'wchar.h',
   'wctype.h',
   'wordexp.h'
-]
+)
 
-inc_headers += ['picotls.h']
+inc_headers += files('picotls.h')
 
 if not newlib_tinystdio
-  inc_headers += ['reent.h']
+  inc_headers += files('reent.h')
 endif
 
 install_headers(inc_headers)

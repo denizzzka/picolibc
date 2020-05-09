@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_ssp = [
+srcs_ssp = files(
     'chk_fail.c',
     'gets_chk.c',
     'memcpy_chk.c',
@@ -50,7 +50,7 @@ srcs_ssp = [
     'strncpy_chk.c',
     'vsnprintf_chk.c',
     'vsprintf_chk.c',
-]
+)
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_ssp' + target,

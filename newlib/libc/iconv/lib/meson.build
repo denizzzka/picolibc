@@ -32,22 +32,22 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_lib = [
+srcs_lib = files(
     'aliasesbi.c',
     'aliasesi.c',
     'iconv.c',
     'iconvnls.c',
     'nullconv.c',
     'ucsconv.c',
-]
-hdrs_lib = [
+)
+hdrs_lib = files(
     'conv.h',
     'encnames.h',
     'endian.h',
     'iconvnls.h',
     'local.h',
     'ucsconv.h',
-]
+)
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_lib' + target,

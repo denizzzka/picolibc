@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_string = [
+srcs_string = files(
     'bcmp.c',
     'bcopy.c',
     'bzero.c',
@@ -135,16 +135,16 @@ srcs_string = [
     'wmempcpy.c',
     'wmemset.c',
     'xpg_strerror_r.c',
-]
+)
 
-hdrs_string = [
+hdrs_string = files(
     'local.h',
     'str-two-way.h',
-]
+)
 
-srcs_strcmp = [
+srcs_strcmp = files(
   'strcmp.c'
-]
+)
 
 if fast_strcmp
   cargs_strcmp = ['-O3']

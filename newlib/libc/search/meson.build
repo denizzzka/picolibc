@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_search = [
+srcs_search = files(
     'bsd_qsort_r.c',
     'bsearch.c',
     'hash_bigkey.c',
@@ -50,13 +50,13 @@ srcs_search = [
     'tfind.c',
     'tsearch.c',
     'twalk.c',
-]
-hdrs_search = [
+)
+hdrs_search = files(
     'db_local.h',
     'extern.h',
     'hash.h',
     'page.h',
-]
+)
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_search' + target,

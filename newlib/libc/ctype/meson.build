@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_ctype = [
+srcs_ctype = files(
     'categories.c',
     'ctype_.c',
     'isalnum.c',
@@ -102,15 +102,15 @@ srcs_ctype = [
     'wctrans_l.c',
     'wctype.c',
     'wctype_l.c',
-]
-hdrs_ctype = [
+)
+hdrs_ctype = files(
     'categories.h',
     'ctype_cp.h',
     'ctype_.h',
     'ctype_iso.h',
     'jp2uc.h',
     'local.h',
-]
+)
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_ctype' + target,

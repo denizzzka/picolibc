@@ -32,14 +32,14 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_locale = [
+srcs_locale = files(
     'locale.c',
     'localeconv.c',
     'lnumeric.c',
     'timelocal.c',
-]
+)
 
-srcs_locale_elix2 = [
+srcs_locale_elix2 = files(
     'duplocale.c',
     'freelocale.c',
     'lctype.c',
@@ -48,15 +48,15 @@ srcs_locale_elix2 = [
     'newlocale.c',
     'nl_langinfo.c',
     'uselocale.c',
-]
+)
 
 if newlib_elix_level >= 2 and newlib_locale_info
   srcs_locale += srcs_locale_elix2
 endif
 
-hdrs_locale = [
+hdrs_locale = files(
     'setlocale.h',
-]
+)
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_locale' + target,

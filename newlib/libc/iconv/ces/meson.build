@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_ces = [
+srcs_ces = files(
     'cesbi.c',
     'euc.c',
     'table.c',
@@ -44,11 +44,11 @@ srcs_ces = [
     'us-ascii.c',
     'utf-16.c',
     'utf-8.c',
-]
-hdrs_ces = [
+)
+hdrs_ces = files(
     'cesbi.h',
     'cesdeps.h',
-]
+)
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_ces' + target,

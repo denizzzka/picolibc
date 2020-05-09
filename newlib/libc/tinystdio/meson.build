@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_tinystdio = [
+srcs_tinystdio = files(
     'clearerr.c',
     'dtoa_engine.c',
     'dtoa_data.c',
@@ -101,23 +101,23 @@ srcs_tinystdio = [
     'vsnprintff.c',
     'vsprintf.c',
     'vsprintff.c',
-]
+)
 
 if have_long_double and not long_double_equals_double
-  srcs_tinystdio += 'strtold.c'
+  srcs_tinystdio += files('strtold.c')
 endif
 
-srcs_tinystdio_posix = [
+srcs_tinystdio_posix = files(
     'fopen.c',
     'fdopen.c',
     'fclose.c',
     'posixio.c',
     'sflags.c'
-]
+)
 
-srcs_tinystdio_posix_console = [
+srcs_tinystdio_posix_console = files(
   'posixiob.c',
-]
+)
 
 if posix_io
   srcs_tinystdio += srcs_tinystdio_posix
@@ -127,18 +127,18 @@ if posix_console
   srcs_tinystdio += srcs_tinystdio_posix_console
 endif
 
-srcs_tinystdio_flt = [
+srcs_tinystdio_flt = files(
     'vfprintf.c',
     'vfscanf.c',
-]
+)
 
-hdrs_tinystdio = [
+hdrs_tinystdio = files(
     'dtoa_engine.h',
     'ftoa_engine.h',
     'stdio.h',
     'stdio_private.h',
     'xtoa_fast.h',
-]
+)
 
 install_headers(
   'stdio.h'

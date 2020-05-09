@@ -32,9 +32,9 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_errno = [
+srcs_errno = files(
     'errno.c',
-]
+)
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_errno' + target,

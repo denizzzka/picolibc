@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_fenv = [
+srcs_fenv = files(
   'feclearexcept.c',
   'fe_dfl_env.c',
   'fegetenv.c',
@@ -46,7 +46,7 @@ srcs_fenv = [
   'fesetround.c',
   'fetestexcept.c',
   'feupdateenv.c',
-]
+)
 
 include_sys = '../../libc/include/sys'
 

@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_argz = [
+srcs_argz = files(
     'argz_add.c',
     'argz_add_sep.c',
     'argz_append.c',
@@ -53,10 +53,10 @@ srcs_argz = [
     'envz_merge.c',
     'envz_remove.c',
     'envz_strip.c',
-]
-hdrs_argz = [
+)
+hdrs_argz = files(
     'buf_findstr.h',
-]
+)
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_argz' + target,

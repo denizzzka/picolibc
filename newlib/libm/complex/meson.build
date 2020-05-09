@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-dsrc_complex = [
+dsrc_complex = files(
   'cabs.c',
   'cacos.c',
   'cacosh.c',
@@ -57,9 +57,9 @@ dsrc_complex = [
   'csqrt.c',
   'ctan.c',
   'ctanh.c',
-]
+)
 
-fsrc_complex = [
+fsrc_complex = files(
   'cabsf.c',
   'casinf.c',
   'ccosf.c',
@@ -84,9 +84,9 @@ fsrc_complex = [
   'cexpf.c',
   'cpowf.c',
   'csinhf.c',
-]
+)
 
-lsrc_complex = [
+lsrc_complex = files(
   'cabsl.c',
   'creall.c',
   'cimagl.c',
@@ -110,15 +110,15 @@ lsrc_complex = [
   'csinhl.c',
   'csinl.c',
   'catanl.c',
-]
+)
 
 srcs_complex = dsrc_complex + fsrc_complex
 
-hdrs_complex = [
+hdrs_complex = files(
     'cephes_subrf.h',
     'cephes_subr.h',
     'cephes_subrl.h',
-]
+)
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_complex' + target,

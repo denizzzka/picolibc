@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_ccs = [
+srcs_ccs = files(
     'big5.c',
     'ccsbi.c',
     'cns11643_plane14.c',
@@ -75,12 +75,12 @@ srcs_ccs = [
     'win_1256.c',
     'win_1257.c',
     'win_1258.c',
-]
-hdrs_ccs = [
+)
+hdrs_ccs = files(
     'ccsbi.h',
     'ccs.h',
     'ccsnames.h',
-]
+)
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_ccs' + target,

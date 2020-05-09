@@ -43,23 +43,23 @@ srcs_machine = {
 			'arm' : ['machine/arm/interrupt.c']
 		      }
 
-srcs_tls = [
+srcs_tls = files(
   'inittls.c'
-]
+)
 
-srcs_picolib = [
+srcs_picolib = files(
   'picosbrk.c',
   'dso_handle.c',
-]
+)
 
 if srcs_machine.has_key(host_cpu_family)
-  srcs_picolib += srcs_machine[host_cpu_family]
+  srcs_picolib += files(srcs_machine[host_cpu_family])
 endif
 
 if thread_local_storage
   srcs_picolib += srcs_tls
   if srcs_machine_tls.has_key(host_cpu_family)
-    srcs_picolib += srcs_machine_tls[host_cpu_family]
+    srcs_picolib += files(srcs_machine_tls[host_cpu_family])
   endif
 endif
 

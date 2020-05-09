@@ -32,14 +32,14 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_misc = [
+srcs_misc = files(
     '__dprintf.c',
     'ffs.c',
     'fini.c',
     'init.c',
     'lock.c',
     'unctrl.c',
-]
+)
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_misc' + target,

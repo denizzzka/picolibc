@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_time = [
+srcs_time = files(
     'asctime.c',
     'asctime_r.c',
     'clock.c',
@@ -54,10 +54,10 @@ srcs_time = [
     'tzset.c',
     'tzvars.c',
     'wcsftime.c',
-]
-hdrs_time = [
+)
+hdrs_time = files(
     'local.h',
-]
+)
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_time' + target,

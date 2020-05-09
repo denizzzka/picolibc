@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_xdr = [
+srcs_xdr = files(
     'dummy.c',
     'xdr_array.c',
     'xdr.c',
@@ -43,10 +43,10 @@ srcs_xdr = [
     'xdr_reference.c',
     'xdr_sizeof.c',
     'xdr_stdio.c',
-]
-hdrs_xdr = [
+)
+hdrs_xdr = files(
     'xdr_private.h',
-]
+)
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_xdr' + target,

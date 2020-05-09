@@ -32,7 +32,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-nano_malloc_srcs_stdlib = [
+nano_malloc_srcs_stdlib = files(
   'nano-malloc-calloc.c',
   'nano-malloc-cfree.c',
   'nano-malloc-free.c',
@@ -45,9 +45,9 @@ nano_malloc_srcs_stdlib = [
   'nano-malloc-pvalloc.c',
   'nano-malloc-realloc.c',
   'nano-malloc-valloc.c',
-]
+)
 
-std_malloc_srcs_stdlib = [
+std_malloc_srcs_stdlib = files(
   'malloc-calloc.c',
   'malloc-cfree.c',
   'malloc-free.c',
@@ -60,9 +60,9 @@ std_malloc_srcs_stdlib = [
   'malloc-pvalloc.c',
   'malloc-realloc.c',
   'malloc-valloc.c',
-]
+)
 
-srcs_stdlib = [
+srcs_stdlib = files(
     'a64l.c',
     'abort.c',
     'abs.c',
@@ -166,13 +166,13 @@ srcs_stdlib = [
     'wctob.c',
     'wctomb.c',
     'wctomb_r.c',
-]
+)
 
-lsrcs_stdlib = [
+lsrcs_stdlib = files(
   'strtold.c',
   'strtorx.c',
   'wcstold.c'
-]
+)
 
 if have_long_double and not long_double_equals_double and not newlib_tinystdio
   srcs_stdlib += lsrcs_stdlib
@@ -187,11 +187,11 @@ else
   srcs_stdlib += std_malloc_srcs_stdlib
 endif
 
-hdrs_stdlib = [
+hdrs_stdlib = files(
     'arc4random.h',
     'atexit.h',
     'chacha_private.h',
-    'gd_qnan.h',
+    #'gd_qnan.h', #FIXME: unavailable file?
     'gdtoa.h',
     'local.h',
     'mbctype.h',
@@ -199,7 +199,7 @@ hdrs_stdlib = [
     'on_exit_args.h',
     'rand48.h',
     'std.h',
-]
+)
 
 foreach target : targets
 	value = get_variable('target_' + target)

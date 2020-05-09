@@ -32,10 +32,10 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_signal = [
+srcs_signal = files(
     'psignal.c',
     'signal.c',
-]
+)
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_signal' + target,
