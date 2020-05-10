@@ -49,6 +49,7 @@ void *__tls;
  */
 void *
 __attribute__((naked))
+__attribute__((used))
 __aeabi_read_tp(void)
 {
 	/* Load the address of __tls */
