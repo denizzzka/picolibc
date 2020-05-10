@@ -90,17 +90,17 @@ srcs_tinystdio = files(
     'vfscanf.c',
     'vfscanff.c',
     'viprintf.c',
-    'viscanf.c',
+    #'viscanf.c', #FIXME: these files disabled because it references to another one with same function signature
     'vprintf.c',
     'vprintff.c',
     'vscanf.c',
-    'vscanff.c',
-    'vsiprintf.c',
+    #'vscanff.c',
+    #'vsiprintf.c',
     'vsniprintf.c',
     'vsnprintf.c',
     'vsnprintff.c',
     'vsprintf.c',
-    'vsprintff.c',
+    #'vsprintff.c',
 )
 
 if have_long_double and not long_double_equals_double

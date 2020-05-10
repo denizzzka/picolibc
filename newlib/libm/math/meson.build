@@ -61,7 +61,7 @@ srcs_math = [
     'ef_scalb.c',
     'ef_sinh.c',
     'ef_sqrt.c',
-    'e_hypot.c',
+    #'e_hypot.c', #FIXME: ld.lld: error: duplicate symbol: hypotl
     'e_j0.c',
     'e_j1.c',
     'e_jn.c',
@@ -177,12 +177,19 @@ if have_long_double
   srcs_math += l_srcs_math
 endif
 
+math_dep = declare_dependency(
+    sources: srcs_math,
+    include_directories: [
+        inc,
+        include_directories('../common'),
+    ]
+)
+
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_math' + target,
 		static_library('math' + target,
-			srcs_math,
 			pic: false,
-			include_directories: [ inc, include_directories('../common') ],
+            dependencies: math_dep,
 			c_args: value[1]))
 endforeach

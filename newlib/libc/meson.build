@@ -160,6 +160,51 @@ endforeach
 
 subdir('include')
 
+lib_c_header_files = [ #unused
+      hdrs_argz,
+      hdrs_ctype,
+      hdrs_ccs,
+      hdrs_ces,
+      hdrs_lib,
+      hdrs_locale,
+      hdrs_search,
+      #hdrs_stdio,
+      hdrs_stdlib,
+      hdrs_string,
+      hdrs_time,
+      hdrs_tinystdio,
+      hdrs_xdr,
+]
+
+lib_c_dep = declare_dependency(
+    sources: [
+	srcs_machine_family,
+	srcs_argz,
+	srcs_ctype,
+	srcs_errno,
+	srcs_ccs,
+	srcs_ces,
+	srcs_lib,
+	srcs_locale,
+	srcs_misc,
+	srcs_picolib,
+	#srcs_reent,
+	srcs_search,
+	srcs_signal,
+	srcs_ssp,
+	#srcs_stdio,
+	#srcs_stdio64,
+	srcs_stdlib,
+	srcs_string, srcs_strcmp,
+	srcs_time,
+	srcs_tinystdio,
+	srcs_xdr,
+    ],
+    include_directories: [
+	inc,
+    ]
+)
+
 foreach target : targets
   value = get_variable('target_' + target)
   libobjs = []

@@ -40,8 +40,8 @@ srcs_time = files(
     'ctime_r.c',
     'difftime.c',
     'gettzinfo.c',
-    'gmtime.c',
-    'gmtime_r.c',
+    #'gmtime.c', #FIXME: disabled to avoid duplication of TLS and global versions
+    #'gmtime_r.c',
     'lcltime.c',
     'lcltime_r.c',
     'mktime.c',

@@ -45,9 +45,9 @@ srcs_string = files(
     'gnu_basename.c',
     'index.c',
     'memccpy.c',
-    'memchr.c',
+    #'memchr.c', ld.lld: error: duplicate symbol: memchr
     'memcmp.c',
-    'memcpy.c',
+    #'memcpy.c', ld.lld: error: duplicate symbol: memcpy
     'memmem.c',
     'memmove.c',
     'mempcpy.c',
@@ -65,14 +65,14 @@ srcs_string = files(
     'strchrnul.c',
     'strcoll.c',
     'strcoll_l.c',
-    'strcpy.c',
+    #'strcpy.c', # ld.lld: error: duplicate symbol: strcpy
     'strcspn.c',
     'strdup.c',
     'strerror.c',
     'strerror_r.c',
     'strlcat.c',
     'strlcpy.c',
-    'strlen.c',
+    #'strlen.c', # ld.lld: error: duplicate symbol: strlen
     'strlwr.c',
     'strncasecmp.c',
     'strncasecmp_l.c',
@@ -143,7 +143,7 @@ hdrs_string = files(
 )
 
 srcs_strcmp = files(
-  'strcmp.c'
+  #'strcmp.c' #ld.lld: error: duplicate symbol: strcmp
 )
 
 if fast_strcmp

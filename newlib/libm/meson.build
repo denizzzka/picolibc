@@ -75,6 +75,17 @@ foreach libdir : libdirs
   subdir(libdir)
 endforeach
 
+lib_m_dep = declare_dependency(
+    sources: [
+      srcs_common, hdrs_common,
+      srcs_complex, hdrs_complex,
+      srcs_fenv,
+    ],
+    dependencies: [
+      math_dep,
+    ]
+)
+
 foreach target : targets
   value = get_variable('target_' + target)
   libobjs = []

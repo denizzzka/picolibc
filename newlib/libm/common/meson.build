@@ -214,18 +214,18 @@ lsrc_common = [
   'sl_finite.c'
 ]
 
-srcs_common = src_common + dsrc_common + fsrc_common
-
 if have_long_double
-  srcs_common += lsrc_common
+  src_common += lsrc_common
 endif
 
-hdrs_common = [
+srcs_common = files(src_common + dsrc_common + fsrc_common)
+
+hdrs_common = files(
     'fdlibm.h',
     'local.h',
     'math_config.h',
     'sincosf.h',
-]
+)
 
 foreach target : targets
   value = get_variable('target_' + target)
