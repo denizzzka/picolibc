@@ -55,7 +55,7 @@ void __aeabi_memmove8 (void *dest, const void *source, size_t n)
 
 /* Support the routine __aeabi_memmove.  Can't alias to memmove
    because it's not defined in the same translation unit.  */
-void __aeabi_memmove (void *dest, const void *source, size_t n)
+void __attribute__((used)) __aeabi_memmove (void *dest, const void *source, size_t n)
 {
   extern void memmove (void *dest, const void *source, size_t n);
   memmove (dest, source, n);
