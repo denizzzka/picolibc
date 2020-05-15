@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # Copyright © 2019 Keith Packard
+# Copyright © 2020 Anthony Anderson
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,36 +33,43 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-srcs_argz = [
-    'argz_add.c',
-    'argz_add_sep.c',
-    'argz_append.c',
-    'argz_count.c',
-    'argz_create.c',
-    'argz_create_sep.c',
-    'argz_delete.c',
-    'argz_extract.c',
-    'argz_insert.c',
-    'argz_next.c',
-    'argz_replace.c',
-    'argz_stringify.c',
-    'buf_findstr.c',
-    'envz_add.c',
-    'envz_entry.c',
-    'envz_get.c',
-    'envz_merge.c',
-    'envz_remove.c',
-    'envz_strip.c',
+
+srcs_libm_machine = [
+  'e_sqrt.c',
+  'ef_sqrt.c',
+  's_ceil.c',
+  's_fabs.c',
+  's_floor.c',
+  's_fma.c',
+  's_fmax.c',
+  's_fmin.c',
+  's_llrint.c',
+  's_llround.c',
+  's_lrint.c',
+  's_lround.c',
+  's_trunc.c',
+  'sf_ceil.c',
+  'sf_fabs.c',
+  'sf_floor.c',
+  'sf_fma.c',
+  'sf_fmax.c',
+  'sf_fmin.c',
+  'sf_llrint.c',
+  'sf_llround.c',
+  'sf_lrint.c',
+  'sf_lround.c',
+  'sf_nearbyint.c',
+  'sf_rint.c',
+  'sf_round.c',
+  'sf_trunc.c'
 ]
-hdrs_argz = [
-    'buf_findstr.h',
-]
+
 foreach target : targets
 	value = get_variable('target_' + target)
-	set_variable('lib_argz' + target,
-		static_library('argz' + target,
-			srcs_argz,
+	set_variable('lib_machine' + target,
+		static_library('machine' + target,
+			srcs_libm_machine,
 			pic: false,
-			include_directories: inc,
-			c_args: value[1]))
+			include_directories: math_inc,
+			c_args: value[1] + ['-fno-builtin']))
 endforeach
