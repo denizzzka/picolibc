@@ -37,34 +37,23 @@
 #include <string.h>
 #include <stdint.h>
 
+/* FIXME: file changed due to https://github.com/keith-packard/picolibc/issues/42 */
+
 /* This needs to be global so that __aeabi_read_tp can
  * refer to it in an asm statement
  */
-void *__tls;
+size_t *__tls;
 
 /*
  * This cannot be a C ABI function as the compiler assumes that it
  * does not modify anything other than r0 and lr. So we create a
  * 'naked' function that respects those limitations.
  */
-//~ void *
-//~ __attribute__((naked))
-//~ __aeabi_read_tp(void)
-//~ {
-	//~ void* result;
-
-	//~ /* Load the address of __tls */
-	//~ asm("ldr r0,1f");
-	//~ /* Dereference to get the value of __tls */
-	//~ asm("ldr r0,[r0]" : "=r" (result));
-	//~ /* All done, return to caller */
-	//~ asm("bx lr");
-	//~ /* Holds the address of __tls */
-	//~ asm(".align 2");
-	//~ asm("1: .word __tls");
-
-	//~ return result;
-//~ }
+void *
+__aeabi_read_tp(void)
+{
+	return (void*) *__tls;
+}
 
 /* The size of the thread control block.
  * TLS relocations are generated relative to
@@ -76,5 +65,5 @@ void *__tls;
 void
 _set_tls(void *tls)
 {
-	__tls = (uint8_t *) tls - TCB_SIZE;
+	__tls = (size_t *) tls - TCB_SIZE;
 }
