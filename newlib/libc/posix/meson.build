@@ -1,8 +1,7 @@
-#!/bin/sh
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
-# Copyright © 2019 Keith Packard
+# Copyright © 2020 Keith Packard
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,64 +32,19 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-qemu=qemu-system-riscv32
-
-# select the program
-elf="$1"
-shift
-
-case "$elf" in
-    */rv32*_ilp32*/*)
-	qemu=qemu-system-riscv32
-	cpu=rv32
-	;;
-    */rv64*_lp64*/*)
-	qemu=qemu-system-riscv64
-	cpu=rv64
-	;;
-    *)
-	qemu=qemu-system-riscv64
-	options="i m a f d c"
-	cpu=rv64
-	;;
-esac
-
-cpu="$cpu,mmu=false,pmp=false"
-
-if [ -z "$options" ]; then
-    options=`echo $elf | sed 's/.*rv[36][24]\([a-z]*\)_.*$/\1/' | sed 's/\(.\)/\1 /g'`
-fi
-
-all_options="i e g m a f d c s u"
-
-for o in $all_options; do
-    if `echo $options | grep -q $o`; then
-	value=true
-    else
-	value=false
-    fi
-    cpu=$cpu",$o=$value"
-done
-
-# Set the target machine
-machine=virt,accel=tcg
-
-# Map stdio to a multiplexed character device so we can use it
-# for the monitor and semihosting output
-
-chardev=stdio,mux=on,id=stdio0
-
-# Point the semihosting driver at our new chardev
-
-semi=enable=on,chardev=stdio0,arg="test-file"
-
-# Point the monitor at the new chardev too
-
-mon=none
-
-# Disable the serial port
-
-serial=none
-
-$qemu -chardev $chardev -semihosting-config $semi -monitor $mon -serial $serial -machine $machine -cpu $cpu -kernel $elf -nographic "$@" -bios none < /dev/null
+srcs_posix = [
+  'regcomp.c',
+  'regerror.c',
+  'regexec.c',
+  'regfree.c',
+]
+foreach target : targets
+	value = get_variable('target_' + target)
+	set_variable('lib_posix' + target,
+		static_library('posix' + target,
+			srcs_posix,
+			pic: false,
+			include_directories: inc,
+			c_args: value[1]))
+endforeach
+  
