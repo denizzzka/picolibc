@@ -44,11 +44,6 @@
  */
 size_t *__tls;
 
-/*
- * This cannot be a C ABI function as the compiler assumes that it
- * does not modify anything other than r0 and lr. So we create a
- * 'naked' function that respects those limitations.
- */
 void *
 __aeabi_read_tp(void)
 {
