@@ -199,11 +199,15 @@ specs_data.set(
   tls_model
 )
 
-picolibc_specs = configure_file(input: 'picolibc.specs.in',
-				output: '@BASENAME@',
-				configuration: specs_data,
-				install_dir: specs_dir,
-				install: true)
+if meson.get_compiler('c').get_id() == 'clang'
+  picolibc_specs = []
+else
+  picolibc_specs = configure_file(input: 'picolibc.specs.in',
+          output: '@BASENAME@',
+          configuration: specs_data,
+          install_dir: specs_dir,
+          install: true)
+endif
 				     
 install_data('picolibc.ld',
 	     install_dir: lib_dir)
@@ -421,7 +425,7 @@ conf_data.set('HAVE_SEMIHOST', has_semihost, description: 'Semihost APIs support
 # By default, tests don't require any special arguments
 
 test_c_args = []
-test_link_args = []
+test_link_args = ['-L/usr/lib/gcc/arm-none-eabi/8.3.1/thumb/v7-m/nofp/']
 test_link_depends = []
 
 if has_semihost
