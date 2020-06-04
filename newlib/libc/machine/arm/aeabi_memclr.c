@@ -31,13 +31,17 @@
 
 /* Support the alias for the __aeabi_memclr which may
    assume memory alignment.  */
-void __attribute__((used)) __aeabi_memclr4 (void *dest, size_t n)
+void __aeabi_memclr4 (void *dest, size_t n)
 	_ATTRIBUTE ((alias ("__aeabi_memclr")));
 
-void __attribute__((used)) __aeabi_memclr8 (void *dest, size_t n)
+void __aeabi_memclr8 (void *dest, size_t n)
 	_ATTRIBUTE ((alias ("__aeabi_memclr")));
 
 /* Support the routine __aeabi_memclr.  */
+/*
+ *__attribute__((used)) added so that building with clang -flto
+ * doesn't discard this function
+ */
 void __attribute__((used)) __aeabi_memclr (void *dest, size_t n)
 {
   extern void __aeabi_memset (void *dest, size_t n, int c);

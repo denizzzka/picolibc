@@ -42,6 +42,7 @@ ENTRY(_start)
 
 MEMORY
 {
+	/* Access properties changed from ~master for clang support */
 	flash (rx) : ORIGIN = DEFINED(__flash) ? __flash : 0x10000000, LENGTH = DEFINED(__flash_size) ? __flash_size : 0x10000
 	ram (rwx)   : ORIGIN = DEFINED(__ram  ) ? __ram   : 0x20000000, LENGTH = DEFINED(__ram_size  ) ? __ram_size   : 0x08000
 }

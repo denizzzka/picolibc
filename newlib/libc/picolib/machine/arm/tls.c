@@ -37,15 +37,10 @@
 #include <string.h>
 #include <stdint.h>
 
-/* FIXME: file changed due to https://github.com/keith-packard/picolibc/issues/42 */
-
-size_t *__tls;
-
-void *
-__aeabi_read_tp(void)
-{
-	return (void*) *__tls;
-}
+/* This needs to be global so that __aeabi_read_tp can
+ * refer to it in an asm statement
+ */
+void *__tls;
 
 /* The size of the thread control block.
  * TLS relocations are generated relative to
@@ -57,5 +52,5 @@ __aeabi_read_tp(void)
 void
 _set_tls(void *tls)
 {
-	__tls = (size_t *) tls - TCB_SIZE;
+	__tls = (uint8_t *) tls - TCB_SIZE;
 }
