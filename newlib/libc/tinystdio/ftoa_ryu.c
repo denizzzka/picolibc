@@ -49,16 +49,6 @@ static uint32_t decimalLength9(const uint32_t v) {
 	return len;
 }
 
-#define max(a, b) ({				\
-			typeof(a) _a = a;	\
-			typeof(b) _b = b;	\
-			_a > _b ? _a : _b; })
-
-#define min(a, b) ({				\
-			typeof(a) _a = a;	\
-			typeof(b) _b = b;	\
-			_a < _b ? _a : _b; })
-
 // A floating decimal representing m * 10^e.
 typedef struct floating_decimal_32 {
 	uint32_t mantissa;
@@ -69,7 +59,7 @@ typedef struct floating_decimal_32 {
 } floating_decimal_32;
 
 static inline floating_decimal_32
-f2d(const uint32_t ieeeMantissa, const uint32_t ieeeExponent, uint8_t max_digits, uint8_t max_decimals)
+f2d(const uint32_t ieeeMantissa, const uint32_t ieeeExponent, int max_digits, int max_decimals)
 {
 	int32_t e2;
 	uint32_t m2;
@@ -217,7 +207,7 @@ f2d(const uint32_t ieeeMantissa, const uint32_t ieeeExponent, uint8_t max_digits
 		 * cases, which is kinda cool
 		 */
 		/* max_decimals comes in biased by 1 to flag the 'f' case */
-		max_digits = min(max_digits, max(0, max_decimals - 1 + exp + 1));
+		max_digits = min_int(max_digits, max_int(0, max_decimals - 1 + exp + 1));
 	}
 
 	for (;;) {
@@ -280,7 +270,7 @@ f2d(const uint32_t ieeeMantissa, const uint32_t ieeeExponent, uint8_t max_digits
 			if(max_decimals != 0) {
 				int exp = e10 + len - 1;
 				/* max_decimals comes in biased by 1 to flag the 'f' case */
-				max_digits = min(save_max_digits, max(0, max_decimals - 1 + exp + 1));
+				max_digits = min_int(save_max_digits, max_int(0, max_decimals - 1 + exp + 1));
 			}
 
 			if (len > max_digits) {
@@ -311,7 +301,7 @@ f2d(const uint32_t ieeeMantissa, const uint32_t ieeeExponent, uint8_t max_digits
 #include "ftoa_engine.h"
 
 int
-__ftoa_engine(float x, struct ftoa *ftoa, uint8_t max_digits, uint8_t max_decimals)
+__ftoa_engine(float x, struct ftoa *ftoa, int max_digits, int max_decimals)
 {
 	// Step 1: Decode the floating-point number, and unify normalized and subnormal cases.
 	const uint32_t bits = float_to_bits(x);
@@ -327,14 +317,12 @@ __ftoa_engine(float x, struct ftoa *ftoa, uint8_t max_digits, uint8_t max_decima
 		flags |= FTOA_MINUS;
 
 	if (ieeeExponent == 0 && ieeeMantissa == 0) {
-		int i;
 		flags |= FTOA_ZERO;
-		for (i = 0; i < max_digits; i++)
-			ftoa->digits[i] = '0';
+		ftoa->digits[0] = '0';
+		ftoa->digits[1] = '\0';
 		ftoa->flags = flags;
 		ftoa->exp = 0;
-		ftoa->digits[max_digits] = '\0';
-		return max_digits;
+		return 1;
 	}
 	if (ieeeExponent == ((1u << FLOAT_EXPONENT_BITS) - 1u)) {
 		if (ieeeMantissa) {

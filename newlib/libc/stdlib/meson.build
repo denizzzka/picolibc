@@ -66,7 +66,6 @@ srcs_stdlib = [
     'a64l.c',
     'abort.c',
     'abs.c',
-    '__adjust.c',
     'aligned_alloc.c',
     'arc4random.c',
     'arc4random_uniform.c',
@@ -90,7 +89,6 @@ srcs_stdlib = [
     'erand48.c',
     'exit.c',
     '_Exit.c',
-    '__exp10.c',
     'getenv.c',
     'getenv_r.c',
     'getopt.c',
@@ -142,7 +140,6 @@ srcs_stdlib = [
     'strtoull.c',
     'strtoumax.c',
     'system.c',
-    '__ten_mu.c',
     'utoa.c',
     'wcrtomb.c',
     'wcsnrtombs.c',
@@ -177,7 +174,7 @@ lsrcs_stdlib = [
   'wcstold.c'
 ]
 
-if not newlib_tinystdio
+if not tinystdio
   srcs_stdlib += srcs_stdlib_stdio
   if have_long_double and not long_double_equals_double
     srcs_stdlib += lsrcs_stdlib
@@ -189,8 +186,19 @@ endif
 
 if newlib_nano_malloc
   srcs_stdlib += nano_malloc_srcs_stdlib
+  # malloc/free code deal with compiler optimizations internally
+  c_args_malloc = []
 else
   srcs_stdlib += std_malloc_srcs_stdlib
+  # Work around compiler optimizing calls involving malloc/free
+  c_args_malloc = []
+  if meson.get_compiler('c').has_argument('-fno-builtin-malloc')
+    c_args_malloc += ['-fno-builtin-malloc']
+  endif
+
+  if meson.get_compiler('c').has_argument('-fno-builtin-free')
+    c_args_malloc += ['-fno-builtin-free']
+  endif
 endif
 
 hdrs_stdlib = [
@@ -207,12 +215,24 @@ hdrs_stdlib = [
     'std.h',
 ]
 
+srcs_stdlib_use = []
+foreach file : srcs_stdlib
+  s_file = file.split('.')[0] + '.S'
+  if file in srcs_machine
+    message(file + ': machine overrides generic')
+  elif s_file in srcs_machine
+    message(s_file + ': machine overrides generic')
+  else
+    srcs_stdlib_use += file
+  endif
+endforeach
+
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_stdlib' + target,
 		static_library('stdlib' + target,
-			srcs_stdlib,
+			srcs_stdlib_use,
 			pic: false,
 			include_directories: inc,
-			c_args: value[1] + ['-DINTERNAL_NEWLIB']))
+			c_args: value[1] + ['-DINTERNAL_NEWLIB'] + c_args_malloc))
 endforeach

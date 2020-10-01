@@ -36,7 +36,8 @@ src_picocrt_machine = {
 			'riscv' : 'riscv/crt0.c',
 			'riscv32' : 'riscv/crt0.c',
 			'riscv64' : 'riscv/crt0.c',
-			'arm' : 'arm/crt0.c'
+			'arm' : 'arm/crt0.c',
+			'aarch64' : 'aarch64/crt0.c'
 		      }
 
 if src_picocrt_machine.has_key(host_cpu_family)
@@ -63,7 +64,7 @@ foreach target : targets
 	     include_directories : inc,
 	     install : true,
 	     install_dir : instdir,
-	     c_args : value[1] + ['-fno-builtin', '-ffreestanding'],
+	     c_args : value[1] + arg_fnobuiltin + ['-ffreestanding'],
 	     link_args : value[1] + ['-r', '-ffreestanding', '-nostdlib'])
 
   # Tests link against this because using the .o isn't supported under meson

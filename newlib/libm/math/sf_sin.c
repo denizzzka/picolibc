@@ -14,7 +14,7 @@
  */
 
 #include "fdlibm.h"
-#if __OBSOLETE_MATH
+#if __OBSOLETE_MATH_FLOAT
 
 #ifdef __STDC__
 	float sinf(float x)
@@ -48,6 +48,13 @@
 	}
 }
 
+#if defined(HAVE_ALIAS_ATTRIBUTE)
+#ifndef __clang__
+#pragma GCC diagnostic ignored "-Wmissing-attributes"
+#endif
+__strong_reference(sinf, _sinf);
+#endif
+
 #ifdef _DOUBLE_IS_32BITS
 
 #ifdef __STDC__
@@ -61,4 +68,4 @@
 }
 
 #endif /* defined(_DOUBLE_IS_32BITS) */
-#endif /* __OBSOLETE_MATH */
+#endif /* __OBSOLETE_MATH_FLOAT */

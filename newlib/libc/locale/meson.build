@@ -39,7 +39,7 @@ srcs_locale = [
     'timelocal.c',
 ]
 
-srcs_locale_elix2 = [
+srcs_locale_info = [
     'duplocale.c',
     'freelocale.c',
     'lctype.c',
@@ -50,18 +50,31 @@ srcs_locale_elix2 = [
     'uselocale.c',
 ]
 
-if newlib_elix_level >= 2 and newlib_locale_info
-  srcs_locale += srcs_locale_elix2
+if newlib_locale_info
+  srcs_locale += srcs_locale_info
 endif
 
 hdrs_locale = [
     'setlocale.h',
 ]
+
+srcs_locale_use = []
+foreach file : srcs_locale
+  s_file = file.split('.')[0] + '.S'
+  if file in srcs_machine
+    message(file + ': machine overrides generic')
+  elif s_file in srcs_machine
+    message(s_file + ': machine overrides generic')
+  else
+    srcs_locale_use += file
+  endif
+endforeach
+
 foreach target : targets
 	value = get_variable('target_' + target)
 	set_variable('lib_locale' + target,
 		static_library('locale' + target,
-			srcs_locale,
+			srcs_locale_use,
 			pic: false,
 			include_directories: inc,
 			c_args: value[1]))

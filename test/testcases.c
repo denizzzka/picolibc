@@ -81,7 +81,9 @@
 //    result |= test(55, "Hot Pocket", "%1$s %2$s", "Hot", "Pocket");
 //    result |= test(56, "12.0 Hot Pockets", "%1$.1f %2$s %3$ss", 12.0, "Hot", "Pocket");
     /* 58: anti-test */
+#ifdef TINY_STDIO
     result |= test(59, "%(foo", "%(foo");
+#endif
     result |= test(60, " foo", "%*s", 4, "foo");
     result |= test(61, "      3.14", "%*.*f", 10, 2, 3.14159265);
     result |= test(63, "3.14      ", "%-*.*f", 10, 2, 3.14159265);
@@ -107,10 +109,13 @@
     result |= test(78, " 7.894561230000000e+08", "%#22.15e", 7.89456123e8);
 #endif
     result |= test(79, "8.e+08", "%#1.1g", 7.89456123e8);
+#if defined(TINY_STDIO) || defined(_WANT_IO_LONG_LONG)
     result |= test(81, "    +100", "%+8lld", 100LL);
     result |= test(82, "+00000100", "%+.8lld", 100LL);
     result |= test(83, " +00000100", "%+10.8lld", 100LL);
+#ifdef TINY_STDIO
     result |= test(84, "%_1lld", "%_1lld", 100LL);
+#endif
     result |= test(85, "-00100", "%-1.5lld", -100LL);
     result |= test(86, "  100", "%5lld", 100LL);
     result |= test(87, " -100", "%5lld", -100LL);
@@ -145,6 +150,7 @@
     result |= test(116, "+00100  ", "%#-+ 08.5lld", 100LL);
     result |= test(117, "0000000000000000000000000000000000000001", "%.40lld", 1LL);
     result |= test(118, " 0000000000000000000000000000000000000001", "% .40lld", 1LL);
+#endif
     result |= test(119, " 0000000000000000000000000000000000000001", "% .40d", 1);
     /* 121: excluded for C */
     /* 124: excluded for C */
@@ -160,7 +166,9 @@
     result |= test(143, "f", "%.*s", 1, "foo");
     result |= test(144, "foo  ", "%*s", -5, "foo");
     result |= test(145, "hello", "hello");
+#ifdef TINY_STDIO
     result |= test(147, "%b", "%b");
+#endif
     result |= test(148, "  a", "%3c", 'a');
     result |= test(149, "1234", "%3d", 1234);
     /* 150: excluded for C */
@@ -179,14 +187,20 @@
     result |= test(165, "12", "%o", 10);
     /* 166: excluded for C */
     /* 167: excluded for C */
+#ifdef TINY_STDIO
     result |= test(168, "(null)", "%s", NULL); 
+#endif
     result |= test(169, "%%%%", "%s", "%%%%");
     result |= test(170, "4294967295", "%u", -1);
+#ifdef TINY_STDIO
     result |= test(171, "%w", "%w", -1);
+#endif
     /* 172: excluded for C */
     /* 173: excluded for C */
     /* 174: excluded for C */
+#ifdef TINY_STDIO
     result |= test(176, "%H", "%H", -1);
+#endif
     result |= test(177, "%0", "%%0");
     result |= test(178, "2345", "%hx", 74565);
     result |= test(179, "61", "%hhx", 'a');
@@ -431,3 +445,23 @@
     result |= test(418, "1.000e-308", "%.3e", 1e-308);
 #endif
     result |= test(419, "1, 1", "%-*.llu, %-*.llu",1,(int64_t)1,1,(int64_t)1);
+    result |= test(420, "1e-09", "%g", 0.000000001);
+    result |= test(421, "1e-08", "%g", 0.00000001);
+    result |= test(422, "1e-07", "%g", 0.0000001);
+    result |= test(423, "1e-06", "%g", 0.000001);
+    result |= test(424, "0.0001", "%g", 0.0001);
+    result |= test(425, "0.001", "%g", 0.001);
+    result |= test(426, "0.01", "%g", 0.01);
+    result |= test(427, "0.1", "%g", 0.1);
+    result |= test(428, "1", "%g", 1.0);
+    result |= test(429, "10", "%g", 10.0);
+    result |= test(430, "100", "%g", 100.0);
+    result |= test(431, "1000", "%g", 1000.0);
+    result |= test(432, "10000", "%g", 10000.0);
+    result |= test(433, "100000", "%g", 100000.0);
+    result |= test(434, "1e+06", "%g", 1000000.0);
+    result |= test(435, "1e+07", "%g", 10000000.0);
+    result |= test(436, "1e+08", "%g", 100000000.0);
+    result |= test(437, "10.0000", "%#.6g", 10.0);
+    result |= test(438, "10", "%.6g", 10.0);
+    result |= test(439, "10.00000000000000000000", "%#.22g", 10.0);

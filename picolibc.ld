@@ -73,7 +73,7 @@ SECTIONS
 	} >flash AT>flash :text
 
 	.fini : {
-		KEEP (*(SORT_NONE(.fini)))
+		KEEP (*(.fini))
 		__text_end = .;
 	} >flash AT>flash :text
 
@@ -91,6 +91,8 @@ SECTIONS
 		*(.srodata.cst4)
 		*(.srodata.cst2)
 		*(.srodata .srodata.*)
+		*(.data.rel.ro .data.rel.ro.*)
+		*(.got .got.*)
 	} >flash AT>flash :text
 
 	. = ALIGN(8);
@@ -129,7 +131,7 @@ SECTIONS
 		KEEP (*crtbegin.o(.ctors))
 		KEEP (*crtbegin?.o(.ctors))
 		KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .ctors))
-		KEEP (*(SORT(.ctors.*)))
+		KEEP (*(SORT_BY_INIT_PRIORITY(.ctors.*)))
 		KEEP (*(.ctors))
 	} >flash AT>flash :text
 
@@ -137,7 +139,7 @@ SECTIONS
 		KEEP (*crtbegin.o(.dtors))
 		KEEP (*crtbegin?.o(.dtors))
 		KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .dtors))
-		KEEP (*(SORT(.dtors.*)))
+		KEEP (*(SORT_BY_INIT_PRIORITY(.dtors.*)))
 		KEEP (*(.dtors))
 	} >flash AT>flash :text
 
@@ -146,7 +148,8 @@ SECTIONS
 	 */
 	.preserve (NOLOAD) : {
 		PROVIDE(__preserve_start__ = .);
-		*(.preserve .preserve.*)
+		KEEP(*(SORT_BY_NAME(.preserve.*)))
+		KEEP(*(.preserve))
 		PROVIDE(__preserve_end__ = .);
 	} >ram AT>ram :ram
 
@@ -219,12 +222,18 @@ SECTIONS
 	PROVIDE( __bss_size = __bss_end - __bss_start );
 
 	/* Make the rest of memory available for heap storage */
-	PROVIDE( __heap_start = __end );
-	PROVIDE( __heap_end = __stack - (DEFINED(__stack_size) ? __stack_size : 0x800) );
-	PROVIDE( __heap_size = __heap_end - __heap_start );
+	PROVIDE (__heap_start = __end);
+	PROVIDE (__heap_end = __stack - (DEFINED(__stack_size) ? __stack_size : 0x800));
+	PROVIDE (__heap_size = __heap_end - __heap_start);
+
+	/* Define a stack region to make sure it fits in memory */
+	.stack (NOLOAD) : {
+		. += (DEFINED(__stack_size) ? __stack_size : 0x800);
+	} >ram :ram
 
 	/* Throw away C++ exception handling information */
 	/DISCARD/ : {
 		*(.eh_frame .eh_frame.*)
+		*(.note .note.*)
 	}
 }

@@ -57,6 +57,7 @@ machine_dirs = {
 		 'i486': 'i386',
 		 'i586': 'i386',
 		 'i686': 'i386',
+		 'x86' : 'i386',
 		 'iq2000': 'iq2000',
 		 'lm32': 'lm32',
 		 'm32c': 'm32c',
@@ -113,17 +114,13 @@ if enable_picolib
   libdirs += 'picolib'
 endif
 
-if newlib_tinystdio
+if tinystdio
   libdirs += 'tinystdio'
 else
   libdirs += ['stdio', 'reent']
   if newlib_stdio64
     libdirs += 'stdio64'
   endif
-endif
-
-if newlib_supplied_syscalls
-  libdirs += 'syscalls'
 endif
 
 libnames = libdirs
@@ -133,7 +130,7 @@ need_generic_fenv_h = true
 if machine_dirs.has_key(host_cpu_family)
   machine_dir = join_paths('machine', machine_dirs[host_cpu_family])
   fenv_file_check = join_paths(machine_dir, 'sys', 'fenv.h')
-  if run_command('test', '-f', fenv_file_check).returncode() == 0
+  if run_command('ls', fenv_file_check).returncode() == 0
     need_generic_fenv_h = false
   else
     need_generic_fenv_h = true
@@ -141,7 +138,7 @@ if machine_dirs.has_key(host_cpu_family)
 
   machine_inc_dir = join_paths(machine_dir, 'include')
 
-  if run_command('test', '-d', machine_inc_dir).returncode() == 0
+  if run_command('ls', machine_inc_dir).returncode() == 0
     inc = [include_directories(machine_inc_dir), inc]
   endif
 
@@ -150,8 +147,8 @@ if machine_dirs.has_key(host_cpu_family)
   libdirs = [machine_dir] + libdirs
   libnames = ['machine'] + libnames
 else
-  warning('No libc machine directory for CPU family ' + host_cpu_family)
-  need_generic_fenv_h = true
+  inc_sys_headers_machine = []
+  srcs_machine = []
 endif
 
 foreach libdir : libdirs
@@ -176,11 +173,21 @@ foreach target : targets
     libc_name = join_paths(target, 'libc')
   endif
 
-  set_variable('lib_c' + target,
-	       static_library(libc_name,
-			      install : true,
-			      install_dir : instdir,
-			      pic: false,
-			      objects : libobjs))
+  local_lib_c_target = static_library(libc_name,
+				      install : true,
+				      install_dir : instdir,
+				      pic: false,
+				      objects : libobjs)
+
+  set_variable('lib_c' + target, local_lib_c_target)
+
+  if check_duplicate_names
+    custom_target('libc_duplicates' + target,
+		  build_by_default: true,
+		  input: local_lib_c_target,
+		  output: 'libc_duplicates' + target,
+		  command: [duplicate_names, nm, '@INPUT@', '@OUTPUT@'],
+		  install: false)
+  endif
 endforeach
 

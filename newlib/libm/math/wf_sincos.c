@@ -2,9 +2,17 @@
 /* sincos -- currently no more efficient than two separate calls to
    sin and cos. */
 #include "fdlibm.h"
-#if __OBSOLETE_MATH
+#if __OBSOLETE_MATH_FLOAT
 
 #include <errno.h>
+
+#ifdef HAVE_ALIAS_ATTRIBUTE
+extern float _sinf(float);
+extern float _cosf(float);
+#else
+#define _sinf sinf
+#define _cosf cosf
+#endif
 
 #ifdef __STDC__
 	void sincosf(float x, float *sinx, float *cosx)
@@ -15,8 +23,8 @@
         float *cosx;
 #endif
 {
-  *sinx = sinf (x);
-  *cosx = cosf (x);
+  *sinx = _sinf (x);
+  *cosx = _cosf (x);
 }
 
 #ifdef _DOUBLE_IS_32BITS
@@ -30,8 +38,8 @@
         double cosx;
 #endif
 {
-  *sinx = sinf((float) x);
-  *cosx = cosf((float) x);
+  *sinx = _sinf((float) x);
+  *cosx = _cosf((float) x);
 }
 #endif /* defined(_DOUBLE_IS_32BITS) */
-#endif /* __OBSOLETE_MATH */
+#endif /* __OBSOLETE_MATH_FLOAT */

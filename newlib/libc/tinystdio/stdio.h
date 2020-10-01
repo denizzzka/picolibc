@@ -224,23 +224,44 @@
  * elements of it beyond by using the official interfaces provided.
  */
 
+/* Use 32-bit ungetc storage when doing atomic ungetc and when
+ * the platform has 4-byte swap intrinsics but not 2-byte swap
+ * intrinsics, as is the case for RISC-V processors. This increases
+ * the size of the __file struct by four bytes.
+ */
+
+#ifdef ATOMIC_UNGETC
+#include <stdatomic.h>
+# ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4
+
+#  define PICOLIBC_HAVE_SYNC_COMPARE_AND_SWAP
+typedef atomic_uint_least32_t __ungetc_store_t;
+typedef uint_least32_t __ungetc_t;
+
+# else
+#  ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2
+
+#   define PICOLIBC_HAVE_SYNC_COMPARE_AND_SWAP
+typedef atomic_uint_least16_t __ungetc_store_t;
+typedef uint_least16_t __ungetc_t;
+
+#  endif
+# endif
+#endif
+
+#ifndef PICOLIBC_HAVE_SYNC_COMPARE_AND_SWAP
+typedef uint16_t __ungetc_store_t;
+typedef uint16_t __ungetc_t;
+#endif
+
 struct __file {
-	unsigned char unget;	/* ungetc() buffer */
+	__ungetc_store_t unget;	/* ungetc() buffer */
 	uint8_t	flags;		/* flags, see below */
 #define __SRD	0x0001		/* OK to read */
 #define __SWR	0x0002		/* OK to write */
-#define __SSTR	0x0004		/* this is an sprintf/snprintf string */
-#define __SERR	0x0010		/* found error */
-#define __SEOF	0x0020		/* found EOF */
-#define __SUNGET 0x0040		/* ungetc() happened */
-#define __SCLOSE 0x0080		/* struct is __file_close with close function */
-#if 0
-/* possible future extensions, will require uint16_t flags */
-#define __SRW	0x0100		/* open for reading & writing */
-#define __SLBF	0x0200		/* line buffered */
-#define __SNBF	0x0400		/* unbuffered */
-#define __SMBF	0x0800		/* buf is from malloc */
-#endif
+#define __SERR	0x0004		/* found error */
+#define __SEOF	0x0008		/* found EOF */
+#define __SCLOSE 0x0010		/* struct is __file_close with close function */
 	int	(*put)(char, struct __file *);	/* function to write one char to device */
 	int	(*get)(struct __file *);	/* function to read one char from device */
 	int	(*flush)(struct __file *);	/* function to flush output to device */
@@ -565,9 +586,21 @@ extern int	fclose(FILE *__stream);
 
  */
 
-extern int	vfprintf(FILE *__stream, const char *__fmt, va_list __ap);
-extern int	__i_vfprintf(FILE *__stream, const char *__fmt, va_list __ap);
-extern int	__f_vfprintf(FILE *__stream, const char *__fmt, va_list __ap);
+#ifdef HAVE_FORMAT_ATTRIBUTE
+#ifdef PICOLIBC_FLOAT_PRINTF_SCANF
+#pragma GCC diagnostic ignored "-Wformat"
+#define __FORMAT_ATTRIBUTE__(__a, __s, __f) __attribute__((__format__ (__a, __s, 0)))
+#else
+#define __FORMAT_ATTRIBUTE__(__a, __s, __f) __attribute__((__format__ (__a, __s, __f)))
+#endif
+#else
+#define __FORMAT_ATTRIBUTE__(__a, __s, __f)
+#endif
+
+#define __PRINTF_ATTRIBUTE__(__s, __f) __FORMAT_ATTRIBUTE__(printf, __s, __f)
+#define __SCANF_ATTRIBUTE__(__s, _f) __FORMAT_ATTRIBUTE__(scanf, __s, __f)
+
+int	vfprintf(FILE *__stream, const char *__fmt, va_list __ap) __PRINTF_ATTRIBUTE__(2, 0);
 
 /**
    The function \c fputc sends the character \c c (though given as type
@@ -602,9 +635,8 @@ extern int	putchar(int __c);
    The function \c printf performs formatted output to stream
    \c stdout.  See \c vfprintf() for details.
 */
-extern int	printf(const char *__fmt, ...);
-extern int	__i_printf(const char *__fmt, ...);
-extern int	__f_printf(const char *__fmt, ...);
+
+int	printf(const char *__fmt, ...) __PRINTF_ATTRIBUTE__(1, 2);
 
 /**
    The function \c vprintf performs formatted output to stream
@@ -612,17 +644,13 @@ extern int	__f_printf(const char *__fmt, ...);
 
    See vfprintf() for details.
 */
-extern int	vprintf(const char *__fmt, va_list __ap);
-extern int	__i_vprintf(const char *__fmt, va_list __ap);
-extern int	__f_vprintf(const char *__fmt, va_list __ap);
+extern int	vprintf(const char *__fmt, va_list __ap) __PRINTF_ATTRIBUTE__(1, 0);
 
 /**
    Variant of \c printf() that sends the formatted characters
    to string \c s.
 */
-extern int	sprintf(char *__s, const char *__fmt, ...);
-extern int	__i_sprintf(char *__s, const char *__fmt, ...);
-extern int	__f_sprintf(char *__s, const char *__fmt, ...);
+extern int	sprintf(char *__s, const char *__fmt, ...) __PRINTF_ATTRIBUTE__(2, 3);
 
 /**
    Like \c sprintf(), but instead of assuming \c s to be of infinite
@@ -632,17 +660,13 @@ extern int	__f_sprintf(char *__s, const char *__fmt, ...);
    Returns the number of characters that would have been written to
    \c s if there were enough space.
 */
-extern int	snprintf(char *__s, size_t __n, const char *__fmt, ...);
-extern int	__i_snprintf(char *__s, size_t __n, const char *__fmt, ...);
-extern int	__f_snprintf(char *__s, size_t __n, const char *__fmt, ...);
+extern int	snprintf(char *__s, size_t __n, const char *__fmt, ...) __PRINTF_ATTRIBUTE__(3, 4);
 
 /**
    Like \c sprintf() but takes a variable argument list for the
    arguments.
 */
-extern int	vsprintf(char *__s, const char *__fmt, va_list ap);
-extern int	__i_vsprintf(char *__s, const char *__fmt, va_list ap);
-extern int	__f_vsprintf(char *__s, const char *__fmt, va_list ap);
+extern int	vsprintf(char *__s, const char *__fmt, va_list ap) __PRINTF_ATTRIBUTE__(2, 0);
 
 /**
    Like \c vsprintf(), but instead of assuming \c s to be of infinite
@@ -652,17 +676,27 @@ extern int	__f_vsprintf(char *__s, const char *__fmt, va_list ap);
    Returns the number of characters that would have been written to
    \c s if there were enough space.
 */
-extern int	vsnprintf(char *__s, size_t __n, const char *__fmt, va_list ap);
-extern int	__i_vsnprintf(char *__s, size_t __n, const char *__fmt, va_list ap);
-extern int	__f_vsnprintf(char *__s, size_t __n, const char *__fmt, va_list ap);
+extern int	vsnprintf(char *__s, size_t __n, const char *__fmt, va_list ap) __PRINTF_ATTRIBUTE__(3, 0);
+
+/**
+   Variant of \c printf() that sends the formatted characters
+   to allocated string \c *strp.
+*/
+int
+asprintf(char **strp, const char *fmt, ...) __PRINTF_ATTRIBUTE__(2,3);
+
+/**
+   Variant of \c vprintf() that sends the formatted characters
+   to allocated string \c *strp.
+*/
+int
+vasprintf(char **strp, const char *fmt, va_list ap) __PRINTF_ATTRIBUTE__(2,0);
 
 /**
    The function \c fprintf performs formatted output to \c stream.
    See \c vfprintf() for details.
 */
-extern int	fprintf(FILE *__stream, const char *__fmt, ...);
-extern int	__i_fprintf(FILE *__stream, const char *__fmt, ...);
-extern int	__f_fprintf(FILE *__stream, const char *__fmt, ...);
+extern int	fprintf(FILE *__stream, const char *__fmt, ...) __PRINTF_ATTRIBUTE__(2, 3);
 
 /**
    Write the string pointed to by \c str to stream \c stream.
@@ -797,9 +831,7 @@ extern int	ferror(FILE *__stream);
 #define ferror(s) ((s)->flags & __SERR)
 #endif /* !defined(__DOXYGEN__) */
 
-extern int	vfscanf(FILE *__stream, const char *__fmt, va_list __ap);
-extern int	__i_vfscanf(FILE *__stream, const char *__fmt, va_list __ap);
-extern int	__f_vfscanf(FILE *__stream, const char *__fmt, va_list __ap);
+extern int	vfscanf(FILE *__stream, const char *__fmt, va_list __ap) __FORMAT_ATTRIBUTE__(scanf, 2, 0);
 
 /**
    The function \c fscanf performs formatted input, reading the
@@ -807,18 +839,14 @@ extern int	__f_vfscanf(FILE *__stream, const char *__fmt, va_list __ap);
 
    See vfscanf() for details.
  */
-extern int	fscanf(FILE *__stream, const char *__fmt, ...);
-extern int	__i_fscanf(FILE *__stream, const char *__fmt, ...);
-extern int	__f_fscanf(FILE *__stream, const char *__fmt, ...);
+extern int	fscanf(FILE *__stream, const char *__fmt, ...) __FORMAT_ATTRIBUTE__(scanf, 2, 3);
 
 /**
    The function \c scanf performs formatted input from stream \c stdin.
 
    See vfscanf() for details.
  */
-extern int	scanf(const char *__fmt, ...);
-extern int	__i_scanf(const char *__fmt, ...);
-extern int	__f_scanf(const char *__fmt, ...);
+extern int	scanf(const char *__fmt, ...) __FORMAT_ATTRIBUTE__(scanf, 1, 2);
 
 /**
    The function \c vscanf performs formatted input from stream
@@ -826,9 +854,7 @@ extern int	__f_scanf(const char *__fmt, ...);
 
    See vfscanf() for details.
 */
-extern int	vscanf(const char *__fmt, va_list __ap);
-extern int	__i_vscanf(const char *__fmt, va_list __ap);
-extern int	__f_vscanf(const char *__fmt, va_list __ap);
+extern int	vscanf(const char *__fmt, va_list __ap) __FORMAT_ATTRIBUTE__(scanf, 1, 0);
 
 /**
    The function \c sscanf performs formatted input, reading the
@@ -836,9 +862,7 @@ extern int	__f_vscanf(const char *__fmt, va_list __ap);
 
    See vfscanf() for details.
  */
-extern int	sscanf(const char *__buf, const char *__fmt, ...);
-extern int	__i_sscanf(const char *__buf, const char *__fmt, ...);
-extern int	__f_sscanf(const char *__buf, const char *__fmt, ...);
+extern int	sscanf(const char *__buf, const char *__fmt, ...) __FORMAT_ATTRIBUTE__(scanf, 2, 3);
 
 /**
    Flush \c stream.
@@ -892,55 +916,6 @@ extern char *tmpnam (char *s);
 
 #endif /* __ASSEMBLER */
 
-#ifdef NEWLIB_INTEGER_PRINTF_SCANF
-#define PICOLIBC_INTEGER_PRINTF_SCANF
-#endif
-
-#ifdef PICOLIBC_INTEGER_PRINTF_SCANF
-
-#define PRINTF_LEVEL	PRINTF_STD
-#define SCANF_LEVEL	SCANF_STD
-
-#define vsnprintf __i_vsnprintf
-#define vfprintf __i_vfprintf
-#define vprintf __i_vprintf
-#define fprintf __i_fprintf
-#define printf __i_printf
-#define sprintf __i_sprintf
-#define snprintf __i_snprintf
-#define asprintf __i_asprintf
-#define asnprintf __i_asnprintf
-
-#define vfscanf __i_vfscanf
-#define scanf __i_scanf
-#define fscanf __i_fscanf
-#define sscanf __i_sscanf
-
-#else
-
-#ifdef PICOLIBC_FLOAT_PRINTF_SCANF
-
-#define vsnprintf __f_vsnprintf
-#define vfprintf __f_vfprintf
-#define vprintf __f_vprintf
-#define fprintf __f_fprintf
-#define printf __f_printf
-#define sprintf __f_sprintf
-#define snprintf __f_snprintf
-#define asprintf __f_asprintf
-#define asnprintf __f_asnprintf
-
-#define vfscanf __f_vfscanf
-#define scanf __f_scanf
-#define fscanf __f_fscanf
-#define sscanf __f_sscanf
-
-#define printf_float(x) __printf_float(x)
-
-#endif
-
-#endif
-
 static __inline uint32_t
 __printf_float(float f)
 {
@@ -951,7 +926,9 @@ __printf_float(float f)
 	return u.u;
 }
 
-#ifndef printf_float
+#ifdef PICOLIBC_FLOAT_PRINTF_SCANF
+#define printf_float(x) __printf_float(x)
+#else
 #define printf_float(x) ((double) (x))
 #endif
 

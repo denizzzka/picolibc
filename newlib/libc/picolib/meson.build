@@ -36,7 +36,8 @@ srcs_machine_tls = {
 			'riscv' : ['machine/riscv/tls.c'],
 			'riscv32' : ['machine/riscv/tls.c'],
 			'riscv64' : ['machine/riscv/tls.c'],
-			'arm' : ['machine/arm/tls.c', 'machine/arm/read_tp.S']
+			'arm' : ['machine/arm/tls.c', 'machine/arm/read_tp.S'],
+			'aarch64' : [ 'machine/aarch64/tls.c' ]
 		      }
 
 srcs_machine = {
@@ -50,6 +51,7 @@ srcs_tls = [
 srcs_picolib = [
   'picosbrk.c',
   'dso_handle.c',
+  'getauxval.c'
 ]
 
 if srcs_machine.has_key(host_cpu_family)
@@ -59,6 +61,7 @@ endif
 if thread_local_storage
   srcs_picolib += srcs_tls
   if srcs_machine_tls.has_key(host_cpu_family)
+    has_picolibc_tls_api = true
     srcs_picolib += srcs_machine_tls[host_cpu_family]
   endif
 endif

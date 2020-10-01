@@ -38,6 +38,7 @@
 #include <_ansi.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "stdio_private.h"
 
 char *
 gcvtf (float invalue,

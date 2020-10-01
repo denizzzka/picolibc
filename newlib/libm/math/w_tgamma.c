@@ -19,6 +19,7 @@
 
 #ifndef _DOUBLE_IS_32BITS
 
+#if !defined(_IEEE_LIBM) || !defined(HAVE_ALIAS_ATTRIBUTE)
 #ifdef __STDC__
 	double tgamma(double x)
 #else
@@ -27,21 +28,21 @@
 #endif
 {
         double y;
-	y = __ieee754_gamma(x);
-	if (signgam < 0) y = -y;
+	y = __ieee754_tgamma(x);
 #ifdef _IEEE_LIBM
 	return y;
 #else
 	if(_LIB_VERSION == _IEEE_) return y;
 
-	if(!finite(y)&&finite(x)) {
-	  if(floor(x)==x&&x<=0.0)
-	    return __kernel_standard(x,x,41); /* tgamma pole */
-	  else
-	    return __kernel_standard(x,x,40); /* tgamma overflow */
+	if(!finite(y)) {
+	  if(x < 0.0 && floor(x)==x)
+	    errno = EDOM;
+	  else if (finite(x))
+	    errno = ERANGE;
 	}
 	return y;
 #endif
 }
+#endif
 
 #endif /* defined(_DOUBLE_IS_32BITS) */

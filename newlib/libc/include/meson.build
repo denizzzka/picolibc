@@ -34,6 +34,7 @@
 #
 subdir('sys')
 subdir('machine')
+subdir('ssp')
 
 inc_headers = [
   'alloca.h',
@@ -41,7 +42,6 @@ inc_headers = [
   'argz.h',
   'ar.h',
   'assert.h',
-  'complex.h',
   'cpio.h',
   'ctype.h',
   'devctl.h',
@@ -69,7 +69,6 @@ inc_headers = [
   'memory.h',
   'newlib.h',
   'paths.h',
-  'pthread.h',
   'pwd.h',
   'regdef.h',
   'regex.h',
@@ -78,7 +77,6 @@ inc_headers = [
   'setjmp.h',
   'signal.h',
   'spawn.h',
-  'stdatomic.h',
   'stdint.h',
   'stdlib.h',
   'string.h',
@@ -86,7 +84,6 @@ inc_headers = [
   '_syslist.h',
   'tar.h',
   'termios.h',
-  'tgmath.h',
   'threads.h',
   'time.h',
   'unctrl.h',
@@ -98,9 +95,13 @@ inc_headers = [
   'wordexp.h'
 ]
 
+if have_complex
+  inc_headers += ['complex.h']
+endif
+
 inc_headers += ['picotls.h']
 
-if not newlib_tinystdio
+if not tinystdio
   inc_headers += ['reent.h']
 endif
 

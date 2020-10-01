@@ -35,7 +35,7 @@
 
 tests = ['nulprintf']
 
-if not newlib_tinystdio and not newlib_nano_formatted_io and newlib_elix_level >= 4
+if not tinystdio and not newlib_nano_formatted_io and newlib_elix_level >= 4
   tests += ['swprintf']
 endif
 
@@ -64,7 +64,7 @@ foreach target : targets
 
     test(test + target,
 	 executable(test_name, src,
-		    c_args: ['-Wno-missing-braces', '-Wno-implicit-int', '-Wno-return-type', '-D_XOPEN_SOURCE=700', '-D_GNU_SOURCE'] + _c_args,
+		    c_args: test_c_warnings + ['-D_XOPEN_SOURCE=700', '-D_GNU_SOURCE'] + _c_args,
 		    link_args: _link_args,
 		    link_with: _libs,
 		    include_directories: test_inc),

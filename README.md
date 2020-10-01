@@ -6,6 +6,11 @@ small embedded systems with limited RAM. Picolibc was formed by blending
 code from [Newlib](http://sourceware.org/newlib/) and
 [AVR Libc](https://www.nongnu.org/avr-libc/).
 
+Build status:
+
+ * ![Release](https://github.com/keith-packard/picolibc/workflows/Release/badge.svg?branch=main)
+ * ![Minsize](https://github.com/keith-packard/picolibc/workflows/Minsize/badge.svg?branch=main)
+
 ## License
 
 Picolibc source comes from a variety of places and has a huge variety
@@ -31,7 +36,7 @@ other licenses.
 Picolibc inherited code for a *lot* of architectures from Newlib, but
 at this point only has code to build for the following targets:
 
- * ARM (32-bit only)
+ * ARM (32- and 64- bit)
  * i386 (Linux hosted, for testing)
  * RISC-V (both 32- and 64- bit)
  * x86_64 (Linux hosted, for testing)
@@ -91,6 +96,77 @@ sync has not been difficult so far.
 
 ## Releases
 
+### Picolibc version 1.4.6
+
+ 1. Install 'ssp' (stack smashing protection) header files. This fixes
+    compiling with -D_FORTIFY_SOURCE.
+
+ 2. Make getc/ungetc re-entrant. This feature, which is enabled by
+    default, uses atomic instruction sequences that do not require
+    OS support.
+
+ 3. Numerous iconv fixes, including enabling testing and switching
+    external CCS file loading to use stdio. By default, iconv provides
+    built-in CCS data for all of the supported encodings, which takes
+    a fairly large amount of read-only memory. Iconv is now always
+    included in picolibc as  it isn't included in applications unless
+    explicitly referenced by them.
+
+ 4. Add __getauxval stub implementation to make picolibc work with
+    GCC version 10 compiled for aarch64-linux-gnu.
+
+ 5. Change how integer- and float- only versions of printf and scanf
+    are selected. Instead of re-defining the symbols using the C
+    preprocessor, picolibc now re-defines the symbols at link
+    time. This avoids having applications compiled with a mixture of
+    modes link in multiple versions of the underlying functions, while
+    still preserving the smallest possible integer-only
+    implementation.
+
+ 6. Document how to use picolibc on a native POSIX system for
+    testing. Check out the [os.md](doc/os.md) file for details.
+
+ 7. Merge current newlib bits in. This includes better fenv support,
+    for which tests are now included in the picolibc test suite.
+
+### Picolibc version 1.4.5
+
+ 1. Fix section order in picolibc.ld to give applications correct
+    control over the layout of .preserve, .init and .fini regions.
+
+ 2. Add startup and TLS support for aarch64 and non Cortex-M 32-bit
+    arm.
+
+### Picolibc version 1.4.4
+
+ 1. Fix floating point 'g' format output in tinystdio. (e.g.,
+    for 10.0, print '10' instead of '1e+01'). There are tests which
+    verify a range of 'g' cases like these now.
+    
+ 2. Merge current newlib bits. The only thing which affects picolibc
+    is the addition of fenv support for arm.
+
+### Picolibc version 1.4.3
+
+ 1. Make fix for CVE 2019-14871 - CVE 2019-14878 in original newlib
+    stdio code not call 'abort'. Allocation failures are now reported
+    back to the application.
+
+ 2. Add 'exact' floating point print/scan code to tinystdio. Thanks
+    to Sreepathi Pai for pointing me at the Ryu code by Ulf
+    Adams.
+
+ 3. Add regular expression functions from newlib. These were removed
+    by accident while removing POSIX filesystem-specific code.
+
+ 4. Make tinystdio versions of [efg]cvt functions. This means that the
+    default tinystdio version of picolibc no longer calls malloc from
+    these functions.    
+
+ 5. More clang-compatibility fixes. (Thanks to Denis Feklushkin)
+
+ 6. Remove stdatomic.h and tgmath.h. (they should not be provide by picolibc)
+
 ### Picolibc version 1.4.2
 
  1. Clang source compatibility. Clang should now be able to compile
@@ -121,7 +197,7 @@ sync has not been difficult so far.
     instead we complain if the wrong value was given and display the
     correct value.
 
- 8. Sync up with current newlib master.
+ 8. Sync up with current newlib head.
 
 ### Picolibc version 1.4.1
 

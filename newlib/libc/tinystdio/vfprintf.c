@@ -94,48 +94,46 @@ typedef double printf_float_t;
 # define PRINTF_LONGLONG	((PRINTF_LEVEL >= PRINTF_FLT) || defined(_WANT_IO_LONG_LONG))
 #endif
 
-#if PRINTF_LONGLONG
+#ifdef PRINTF_LONGLONG
 typedef unsigned long long ultoa_unsigned_t;
 typedef long long ultoa_signed_t;
 #define SIZEOF_ULTOA __SIZEOF_LONG_LONG__
 #define PRINTF_BUF_SIZE 22
-#define arg_to_t(flags, _s_)	({				\
-	    _s_ long long __v__;				\
-	    if ((flags) & FL_LONG) {				\
-		if ((flags) & FL_REPD_TYPE)			\
-		    __v__ = va_arg(ap, _s_ long long);		\
-		else						\
-		    __v__ = va_arg(ap, _s_ long);		\
-	    } else if ((flags) & FL_SHORT) {			\
-		if ((flags) & FL_REPD_TYPE)			\
-		    __v__ = (_s_ char) va_arg(ap, _s_ int);	\
-		else						\
-		    __v__ = (_s_ short) va_arg(ap, _s_ int);	\
-	    } else {						\
-		__v__ = va_arg(ap, _s_ int);			\
-	    }							\
-	    __v__;						\
-	})
+#define arg_to_t(flags, _s_, _result_)	{				\
+	    if ((flags) & FL_LONG) {					\
+		if ((flags) & FL_REPD_TYPE)				\
+		    *(_result_) = va_arg(ap, _s_ long long);		\
+		else							\
+		    *(_result_) = va_arg(ap, _s_ long);			\
+	    } else if ((flags) & FL_SHORT) {				\
+		if ((flags) & FL_REPD_TYPE)				\
+		    *(_result_) = (_s_ char) va_arg(ap, _s_ int);	\
+		else							\
+		    *(_result_) = (_s_ short) va_arg(ap, _s_ int);	\
+	    } else {							\
+		*(_result_) = va_arg(ap, _s_ int);			\
+	    }								\
+	}
 #else
 typedef unsigned long ultoa_unsigned_t;
 typedef long ultoa_signed_t;
 #define SIZEOF_ULTOA __SIZEOF_LONG__
 #define PRINTF_BUF_SIZE 11
-#define arg_to_t(flags, _s_)	({				\
-	    _s_ long __v__;					\
-	    if ((flags) & FL_LONG) {				\
-		__v__ = va_arg(ap, _s_ long);			\
-	    } else if ((flags) & FL_SHORT) {			\
-		__v__ = (_s_ short) va_arg(ap, _s_ int);	\
-	    } else {						\
-		__v__ = va_arg(ap, _s_ int);			\
-	    }							\
-	    __v__;						\
-	})
+#define arg_to_t(flags, _s_, _result_)	{				\
+	    if ((flags) & FL_LONG) {					\
+		*(_result_) = va_arg(ap, _s_ long);			\
+	    } else if ((flags) & FL_SHORT) {				\
+		*(_result_) = (_s_ short) va_arg(ap, _s_ int);		\
+	    } else {							\
+		*(_result_) = va_arg(ap, _s_ int);			\
+	    }								\
+	}
 #endif
 
-#define arg_to_unsigned(flags) arg_to_t(flags, unsigned)
-#define arg_to_signed(flags) arg_to_t(flags, signed)
+// At the call site the address of the result_var is taken (e.g. "&ap")
+// That way, it's clear that these macros *will* modify that variable
+#define arg_to_unsigned(flags, result_var) arg_to_t((flags), unsigned, (result_var))
+#define arg_to_signed(flags, result_var) arg_to_t((flags), signed, (result_var))
 
 #include "ultoa_invert.c"
 
@@ -147,7 +145,6 @@ typedef long ultoa_signed_t;
 #define FL_ALTLWR	0x20
 #define FL_NEGATIVE	0x40
 #define FL_LONG 	0x80
-
 
 int
 vfprintf (FILE * stream, const char *fmt, va_list ap)
@@ -220,7 +217,8 @@ vfprintf (FILE * stream, const char *fmt, va_list ap)
 	}
 
 	if (c == 'd' || c == 'i') {
-	    ultoa_signed_t x = arg_to_signed(flags);
+	    ultoa_signed_t x;
+	    arg_to_signed(flags, &x);
 
 	    flags &= ~FL_ALT;
 	    if (x < 0) {
@@ -253,7 +251,11 @@ vfprintf (FILE * stream, const char *fmt, va_list ap)
 		flags |= FL_ALTHEX;
 	        base = 16 | XTOA_UPPER;
 	      ultoa:
-		c = __ultoa_invert (arg_to_unsigned(flags), (char *)buf, base) - (char *)buf;
+		{
+		    ultoa_unsigned_t x;
+		    arg_to_unsigned(flags, &x);
+		    c = __ultoa_invert (x, (char *)buf, base) - (char *)buf;
+		}
 		break;
 
 	      default:
@@ -468,7 +470,7 @@ int vfprintf (FILE * stream, const char *fmt, va_list ap)
 	    goto flt_oper;
 
 	} else if (c >= 'e' && c <= 'g') {
-	    int exp;			/* exponent of master decimal digit	*/
+	    int exp;			/* exponent of most significant decimal digit */
 	    int n;
 	    uint8_t sign;		/* sign character (or 0)	*/
 	    uint8_t ndigs;		/* number of digits to convert */
@@ -552,25 +554,65 @@ int vfprintf (FILE * stream, const char *fmt, va_list ap)
 
 		/* 'g(G)' format */
 
-		prec = ndigs;
+		/*
+		 * On entry to this block, prec is
+		 * the number of digits to display.
+		 *
+		 * On exit, prec is the number of digits
+		 * to display after the decimal point
+		 */
 
-		/* Remove trailing zeros unless '#' */
+		/* Always show at least one digit */
+		if (prec == 0)
+		    prec = 1;
+
+		/*
+		 * Remove trailing zeros. The ryu code can emit them
+		 * when rounding to fewer digits than required for
+		 * exact output, the imprecise code often emits them
+		 */
+		while (ndigs > 0 && _dtoa.digits[ndigs-1] == '0')
+		    ndigs--;
+
+		/* Save requested precision */
+		int req_prec = prec;
+
+		/* Limit output precision to ndigs unless '#' */
 		if (!(flags & FL_ALT))
-		    while (ndigs > 0 && _dtoa.digits[ndigs-1] == '0')
-			ndigs--;
+		    prec = ndigs;
 
-		if (-4 <= exp && exp < prec)
+		/*
+		 * Figure out whether to use 'f' or 'e' format. The spec
+		 * says to use 'f' if the exponent is >= -4 and < requested
+		 * precision. 
+		 */
+		if (-4 <= exp && exp < req_prec)
 		{
 		    flags |= FL_FLTFIX;
 
-		    if (exp < 0 || ndigs > exp)
-			prec = ndigs - (exp + 1);
+		    /* Compute how many digits to show after the decimal.
+		     *
+		     * If exp is negative, then we need to show that
+		     * many leading zeros plus the requested precision
+		     *
+		     * If exp is less than prec, then we need to show a
+		     * number of digits past the decimal point,
+		     * including (potentially) some trailing zeros
+		     *
+		     * (these two cases end up computing the same value,
+		     * and are both caught by the exp < prec test,
+		     * so they share the same branch of the 'if')
+		     *
+		     * If exp is at least 'prec', then we don't show
+		     * any digits past the decimal point.
+		     */
+		    if (exp < prec)
+			prec = prec - (exp + 1);
 		    else
 			prec = 0;
 		} else {
-
-		    /* Limit displayed precision to available precision */
-		    prec = ndigs - 1;
+		    /* Compute how many digits to show after the decimal */
+		    prec = prec - 1;
 		}
 	    }
 
@@ -720,7 +762,8 @@ int vfprintf (FILE * stream, const char *fmt, va_list ap)
 	}
 
 	if (c == 'd' || c == 'i') {
-	    ultoa_signed_t x = arg_to_signed(flags);
+	    ultoa_signed_t x;
+	    arg_to_signed(flags, &x);
 
 	    flags &= ~(FL_NEGATIVE | FL_ALT);
 	    if (x < 0) {
@@ -734,7 +777,8 @@ int vfprintf (FILE * stream, const char *fmt, va_list ap)
 		c = __ultoa_invert (x, (char *)buf, 10) - (char *)buf;
 	} else {
 	    int base;
-	    ultoa_unsigned_t x = arg_to_unsigned(flags);
+	    ultoa_unsigned_t x;
+	    arg_to_unsigned(flags, &x);
 
 	    flags &= ~(FL_PLUS | FL_SPACE);
 
@@ -840,5 +884,10 @@ int vfprintf (FILE * stream, const char *fmt, va_list ap)
     return stream_len;
 #undef my_putc
 }
+
+#ifndef vfprintf
+int __d_vfprintf (FILE * stream, const char *fmt, va_list ap) __attribute__((alias("vfprintf"), nonnull));
+#endif
+
 
 #endif	/* PRINTF_LEVEL > PRINTF_MIN */

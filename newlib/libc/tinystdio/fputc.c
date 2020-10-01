@@ -31,6 +31,7 @@
 
 #include <stdio.h>
 #include "stdio_private.h"
+#include <sys/cdefs.h>
 
 int
 fputc(int c, FILE *stream)
@@ -38,15 +39,14 @@ fputc(int c, FILE *stream)
 	if ((stream->flags & __SWR) == 0)
 		return EOF;
 
-	if (stream->flags & __SSTR) {
-		struct __file_str *sstream = (struct __file_str *) stream;
-		if (sstream->len >= sstream->size)
-			return EOF;
-		*sstream->buf++ = c;
-		++sstream->len;
-	} else {
-		if (stream->put(c, stream) == EOF)
-			return EOF;
-	}
+	if (stream->put(c, stream) < 0)
+		return EOF;
+
 	return c;
 }
+
+#ifdef HAVE_ALIAS_ATTRIBUTE
+__strong_reference(fputc, putc);
+#elif !defined(getc)
+int putc(int c, FILE *stream) { return fputc(c, stream); }
+#endif
