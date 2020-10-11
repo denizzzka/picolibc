@@ -327,10 +327,10 @@ if meson.get_compiler('c').get_id() == 'clang'
   picolibc_specs = []
 else
 picolibc_specs = configure_file(input: 'picolibc.specs.in',
-				output: '@BASENAME@',
-				configuration: specs_data,
-				install_dir: specs_dir,
-				install: specs_install)
+        output: '@BASENAME@',
+        configuration: specs_data,
+        install_dir: specs_dir,
+        install: specs_install)
 endif
 				     
 test_specs = configure_file(input: 'test.specs.in',
