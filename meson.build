@@ -323,11 +323,15 @@ specs_data.set(
   specs_printf
 )
 
+if meson.get_compiler('c').get_id() == 'clang'
+  picolibc_specs = []
+else
 picolibc_specs = configure_file(input: 'picolibc.specs.in',
 				output: '@BASENAME@',
 				configuration: specs_data,
 				install_dir: specs_dir,
 				install: specs_install)
+endif
 				     
 test_specs = configure_file(input: 'test.specs.in',
 			    output: '@BASENAME@',
@@ -711,7 +715,7 @@ if tests_enable_stack_protector
     tests_enable_stack_protector = false
   endif
 endif
-test_link_args = test_c_args
+test_link_args = [test_c_args, '-L/usr/lib/gcc/arm-none-eabi/8.3.1/thumb/v7-m/nofp/']
 test_link_depends = []
 
 if has_semihost

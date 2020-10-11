@@ -31,7 +31,7 @@
 
 /* Support the alias for the __aeabi_memclr which may
    assume memory alignment.  */
-void __aeabi_memclr4 (void *dest, size_t n)
+void __attribute((used)) __aeabi_memclr4 (void *dest, size_t n)
 	_ATTRIBUTE ((alias ("__aeabi_memclr")));
 
 void __aeabi_memclr8 (void *dest, size_t n)
