@@ -683,10 +683,12 @@ if meson.get_compiler('c').has_argument('-ffunction-sections')
   arguments += ['-ffunction-sections']
 endif
 
-if tls_model != ''
-  tls_arg = '-ftls-model=' + tls_model
-  assert(meson.get_compiler('c').has_argument(tls_arg), 'Compiler does not support \'-ftls-model\'!')
-  arguments += [tls_arg]
+if meson.get_compiler('c').get_id() != 'clang'
+  if tls_model != ''
+    tls_arg = '-ftls-model=' + tls_model
+    assert(meson.get_compiler('c').has_argument(tls_arg), 'Compiler does not support \'-ftls-model\'!')
+    arguments += [tls_arg]
+  endif
 endif
 
 add_project_arguments(arguments, language: 'c')
@@ -733,18 +735,28 @@ if has_semihost
 
   picolibc_link_path = '@0@/@1@'.format(meson.current_source_dir(), 'picolibc.ld')
 
-  test_c_args += ['--specs', '@0@/@1@'.format(meson.current_build_dir(), picolibc_specs)]
+  if meson.get_compiler('c').get_id() != 'clang'
+    test_c_args += ['--specs', '@0@/@1@'.format(meson.current_build_dir(), picolibc_specs)]
+  endif
 
   # Undefine _exit as that's in libsemihost and needs to replace the weak _exit
 
-  test_link_args += test_c_args + ['-nostartfiles', '-nostdlib', '-T', test_link_path, '-T', picolibc_link_path, '-Wl,--undefined=_exit', '-lgcc']
+  test_link_args += test_c_args
+
+  if meson.get_compiler('c').get_id() != 'clang'
+    test_link_args += '-nostartfiles'
+  endif
+
+  test_link_args += ['-nostdlib', '-T', test_link_path, '-T', picolibc_link_path, '-Wl,--undefined=_exit', '-lgcc']
 
   # Make sure all of the tests get re-linked if the linker scripts change
 
   test_link_depends += test_link_dep + files('picolibc.ld') + [picolibc_specs]
 else
   test_link_depends += test_specs
-  test_c_args += ['--specs', '@0@/@1@'.format(meson.current_build_dir(), test_specs)]
+  if meson.get_compiler('c').get_id() != 'clang'
+    test_c_args += ['--specs', '@0@/@1@'.format(meson.current_build_dir(), test_specs)]
+  endif
   test_link_args += test_c_args
 endif
 
