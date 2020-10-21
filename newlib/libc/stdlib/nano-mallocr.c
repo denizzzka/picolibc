@@ -135,6 +135,7 @@ int mallopt(int parameter_number, int parameter_value);
 void * valloc(size_t s);
 void * pvalloc(size_t s);
 void __malloc_validate(void);
+void __malloc_validate_block(chunk_t *r);
 void * __malloc_sbrk_aligned(size_t s);
 bool __malloc_grow_chunk(chunk_t *c, size_t new_size);
 
@@ -143,8 +144,10 @@ bool __malloc_grow_chunk(chunk_t *c, size_t new_size);
  */
 #ifdef HAVE_ALIAS_ATTRIBUTE
 extern typeof(free) __malloc_free;
+extern typeof(malloc) __malloc_malloc;
 #else
 #define __malloc_free(x) free(x)
+#define __malloc_malloc(x) malloc(x)
 #endif
 
 /* convert storage pointer to chunk */
@@ -379,6 +382,14 @@ void * malloc(size_t s)
 
     return ptr;
 }
+#ifdef HAVE_ALIAS_ATTRIBUTE
+#pragma GCC diagnostic push
+#ifndef __clang__
+#pragma GCC diagnostic ignored "-Wmissing-attributes"
+#endif
+__strong_reference(malloc, __malloc_malloc);
+#pragma GCC diagnostic pop
+#endif
 #endif /* DEFINE_MALLOC */
 
 #ifdef DEFINE_FREE
@@ -401,6 +412,9 @@ void free (void * free_p)
 
     p_to_free = ptr_to_chunk(free_p);
     p_to_free->next = NULL;
+#if MALLOC_DEBUG
+    __malloc_validate_block(p_to_free);
+#endif
 
     MALLOC_LOCK;
 
@@ -506,6 +520,10 @@ void * realloc(void * ptr, size_t size)
     size_t new_size = chunk_size(size);
     chunk_t *p_to_realloc = ptr_to_chunk(ptr);
 
+#if MALLOC_DEBUG
+    __malloc_validate_block(p_to_realloc);
+#endif
+
     size_t old_size = p_to_realloc->size;
 
     /* See if we can avoid allocating new memory
@@ -582,16 +600,26 @@ void * realloc(void * ptr, size_t size)
 
 #ifdef DEFINE_MALLINFO
 
+volatile chunk_t *__malloc_block;
+
+void
+__malloc_validate_block(chunk_t *r)
+{
+    __malloc_block = r;
+    assert (ALIGN_PTR(chunk_to_ptr(r), MALLOC_CHUNK_ALIGN) == chunk_to_ptr(r));
+    assert (ALIGN_PTR(r, MALLOC_HEAD_ALIGN) == r);
+    assert (r->size >= MALLOC_MINSIZE);
+    assert (r->size < 0x80000000UL);
+    assert (ALIGN_TO(r->size, MALLOC_HEAD_ALIGN) == r->size);
+}
+
 void
 __malloc_validate(void)
 {
     chunk_t *r;
 
     for (r = __malloc_free_list; r; r = r->next) {
-	assert (ALIGN_PTR(chunk_to_ptr(r), MALLOC_CHUNK_ALIGN) == chunk_to_ptr(r));
-	assert (ALIGN_PTR(r, MALLOC_HEAD_ALIGN) == r);
-	assert (r->size >= MALLOC_MINSIZE);
-	assert (ALIGN_TO(r->size, MALLOC_HEAD_ALIGN) == r->size);
+	__malloc_validate_block(r);
 	assert (r->next == NULL || (char *) r + r->size < (char *) r->next);
     }
 }
@@ -689,7 +717,7 @@ void * memalign(size_t align, size_t s)
      */
     size_with_padding = s + align + MALLOC_MINSIZE;
 
-    allocated = malloc(size_with_padding);
+    allocated = __malloc_malloc(size_with_padding);
     if (allocated == NULL) return NULL;
 
     chunk_p = ptr_to_chunk(allocated);
@@ -707,12 +735,7 @@ void * memalign(size_t align, size_t s)
 	}
 
 	chunk_t *new_chunk_p = ptr_to_chunk(aligned_p);
-#pragma GCC diagnostic push
-#ifndef __clang__
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
 	new_chunk_p->size = chunk_p->size - offset;
-#pragma GCC diagnostic pop
 
 	make_free_chunk(chunk_p, offset);
 

@@ -53,6 +53,7 @@ enable_picocrt = get_option('picocrt')
 enable_tests = get_option('tests')
 enable_native_tests = get_option('native-tests')
 tests_enable_stack_protector = get_option('tests-enable-stack-protector')
+tests_disable_full_malloc_stress = get_option('tests-disable-full-malloc-stress')
 have_alias_attribute_option = get_option('have-alias-attribute')
 have_format_attribute_option = get_option('have-format-attribute')
 newlib_register_fini = get_option('newlib-register-fini')
@@ -120,7 +121,7 @@ if newlib_tinystdio != 'auto'
   tinystdio = newlib_tinystdio == 'true'
 endif
 
-has_link_defsym=meson.get_compiler('c').has_link_argument('-Wl,--defsym=testdefsym=0')
+has_link_defsym=meson.get_compiler('c').has_link_argument('-Wl,--defsym=' + global_prefix + '_start=0')
 has_link_alias=meson.get_compiler('c').has_link_argument('-Wl,-alias,' + global_prefix + 'main,testalias')
 
 float_printf_compile_args=['-DPICOLIBC_FLOAT_PRINTF_SCANF']
