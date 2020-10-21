@@ -33,23 +33,12 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <unistd.h>
+#include "math_config.h"
 
-extern char __heap_start[];
-extern char __heap_end[];
-
-static char *brk = __heap_start;
-
-void *sbrk(ptrdiff_t incr)
+#if defined(_HAVE_LONG_DOUBLE)
+int
+__issignalingl(long double x)
 {
-	if (incr < 0) {
-		if (brk - __heap_start < -incr)
-			return (void *) -1;
-	} else {
-		if (__heap_end - brk < incr)
-			return (void *) -1;
-	}
-	void *ret = brk;
-	brk += incr;
-	return ret;
+	return issignaling_inline(x);
 }
+#endif
